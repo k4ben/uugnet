@@ -11,30 +11,26 @@ import (
 var users = map[string]string{
 	"u":   "p",
 	"ben": "password",
-	// Add more users and passwords as needed
 }
 
 func main() {
-	println(generateBanner())
-	// Start a TCP server
-	listener, err := net.Listen("tcp", ":8080")
+	port := ":8080"
+	listener, err := net.Listen("tcp", port)
 	if err != nil {
 		fmt.Println("Error:", err)
 		os.Exit(1)
 	}
 	defer listener.Close()
 
-	fmt.Println("uugnet server started, listening on port 8080")
+	fmt.Printf("uugnet server started on %s\n", port)
 
 	for {
-		// Accept connections from clients
 		conn, err := listener.Accept()
 		if err != nil {
 			fmt.Println("Error accepting connection:", err)
 			continue
 		}
 
-		// Handle each connection in a separate goroutine
 		go handleConnection(conn)
 	}
 }
@@ -44,10 +40,8 @@ func handleConnection(conn net.Conn) {
 
 	shouldClose := false
 
-	// Create a bufio reader to read data from the connection
 	reader := bufio.NewReader(conn)
 
-	// Read username
 	fmt.Fprintf(conn, "Enter username: ")
 	username, err := reader.ReadString('\n')
 	if err != nil {
@@ -56,7 +50,6 @@ func handleConnection(conn net.Conn) {
 	}
 	username = strings.TrimSpace(username)
 
-	// Read password
 	fmt.Fprintf(conn, "Enter password: ")
 	password, err := reader.ReadString('\n')
 	if err != nil {
@@ -65,7 +58,6 @@ func handleConnection(conn net.Conn) {
 	}
 	password = strings.TrimSpace(password)
 
-	// Check if the username and password are correct
 	storedPassword, ok := users[username]
 	if !ok || storedPassword != strings.ToLower(password) {
 		fmt.Fprintf(conn, "Incorrect username or password\n")
@@ -91,5 +83,4 @@ func handleConnection(conn net.Conn) {
 		}
 	}
 
-	// Now you can implement your event handling logic here
 }
