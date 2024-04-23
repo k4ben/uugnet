@@ -66,11 +66,11 @@ func handleConnection(conn net.Conn) {
 	password = strings.TrimSpace(password)
 
 	// Check if the username and password are correct
-	// storedPassword, ok := users[strings.ToLower(username)]
-	// if !ok || strings.ToLower(storedPassword) != strings.ToLower(password) {
-	// 	fmt.Fprintf(conn, "Incorrect username or password\n")
-	// 	return
-	// }
+	storedPassword, ok := users[username]
+	if !ok || storedPassword != strings.ToLower(password) {
+		fmt.Fprintf(conn, "Incorrect username or password\n")
+		return
+	}
 	fmt.Fprint(conn, generateBanner())
 
 	for !shouldClose {
@@ -83,6 +83,9 @@ func handleConnection(conn net.Conn) {
 		switch strings.ToLower(args[0]) {
 		case "help":
 			fmt.Fprint(conn, help(args))
+		case "exit":
+			fmt.Fprintln(conn, "Leaving uugnet... Bye!")
+			shouldClose = true
 		default:
 			fmt.Fprintf(conn, "Unknown command: %s\n", args[0])
 		}
