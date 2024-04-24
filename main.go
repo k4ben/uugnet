@@ -2,10 +2,17 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"net"
 	"os"
 	"strings"
+	"uugnet/internal/commands"
+	"uugnet/internal/db"
+	"uugnet/internal/logger"
+	"uugnet/internal/user"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 var users = map[string]string{
@@ -13,13 +20,37 @@ var users = map[string]string{
 	"ben": "password",
 }
 
-func main() {
-	port := ":8080"
-	listener, err := net.Listen("tcp", port)
-	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
+func handleArgs(args []string) {
+	if len(args) == 0 {
+		fmt.Println("Usage: uugnet <command>")
+		fmt.Println("Commands:")
+		fmt.Println("serve\t\t\tRun the uugnet server")
+		fmt.Println("userlist\t\tList users")
+		fmt.Println("useradd <username>\tAdd user")
+		fmt.Println()
+		os.Exit(0)
 	}
+	switch args[0] {
+	case "userlist":
+		user.CLI.UserList()
+	case "useradd":
+		user.CLI.AddUser(args)
+	case "serve":
+		return
+	}
+	os.Exit(0)
+}
+
+func main() {
+	err := db.InitDatabase()
+	commands.InitCommands()
+	logger.Fatal(err)
+	flag.Parse()
+	args := flag.Args()
+	handleArgs(args)
+	port := ":23"
+	listener, err := net.Listen("tcp", port)
+	logger.Fatal(err)
 	defer listener.Close()
 
 	fmt.Printf("uugnet server started on %s\n", port)
@@ -35,52 +66,66 @@ func main() {
 	}
 }
 
+func generatePrompt(name string) string {
+	nameStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("5"))
+	symbolStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	uugnetStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("99"))
+
+	prompt := "\n" + nameStyle.Render(name) + symbolStyle.Render("@") + uugnetStyle.Render("uugnet") + symbolStyle.Render("> ")
+	return prompt
+}
+
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	shouldClose := false
-
 	reader := bufio.NewReader(conn)
 
-	fmt.Fprintf(conn, "Enter username: ")
+	fmt.Fprintf(conn, "\nuugnet login: ")
 	username, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading username:", err)
 		return
 	}
-	username = strings.TrimSpace(username)
 
-	fmt.Fprintf(conn, "Enter password: ")
+	// This is a stupid thing that telnet on macOS sends when you don't specify a port, so i'm manually removing it for the time being
+	prefix := []byte{255, 251, 37, 255, 253, 3, 255, 251, 24, 255, 251, 31, 255, 251, 32, 255, 251, 33, 255, 251, 34, 255, 251, 39, 255, 253, 5}
+
+	username = strings.TrimSpace(username)
+	username = strings.Replace(username, string(prefix), "", 1)
+
+	fmt.Fprintf(conn, "Password: ")
 	password, err := reader.ReadString('\n')
+	fmt.Fprintln(conn)
 	if err != nil {
 		fmt.Println("Error reading password:", err)
 		return
 	}
 	password = strings.TrimSpace(password)
 
-	storedPassword, ok := users[username]
-	if !ok || storedPassword != strings.ToLower(password) {
-		fmt.Fprintf(conn, "Incorrect username or password\n")
+	userRow, err := db.GetUser(username)
+
+	if err != nil {
+		fmt.Fprintf(conn, "User not found: '%s'\n", username)
+		fmt.Println(err)
+		return
+	} else if userRow.Password != password {
+		fmt.Fprintln(conn, "Incorrect username or password")
+		fmt.Fprintf(conn, "\nForgot password? [Y/n]: ")
+		reader.ReadString('\n')
+		fmt.Fprintf(conn, "Your password is '%s'\n\n", userRow.Password)
 		return
 	}
-	fmt.Fprint(conn, generateBanner())
+	fmt.Fprintf(conn, "%s\n\n", generateBanner())
+	fmt.Fprintf(conn, "Welcome to uugnet, %s! Type 'help' for commands.\n", username)
 
-	for !shouldClose {
+	for true {
 		fmt.Fprint(conn, generatePrompt(username))
 		in, err := reader.ReadString('\n')
 		if err != nil {
-			panic(err)
+			return
 		}
 		args := strings.Split(strings.TrimSpace(in), " ")
-		switch strings.ToLower(args[0]) {
-		case "help":
-			fmt.Fprint(conn, help(args))
-		case "exit":
-			fmt.Fprintln(conn, "Leaving uugnet... Bye!")
-			shouldClose = true
-		default:
-			fmt.Fprintf(conn, "Unknown command: %s\n", args[0])
-		}
+		commands.HandleCommands(userRow, args, conn, *reader)
 	}
 
 }

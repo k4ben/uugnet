@@ -1,4 +1,0 @@
-- fix telnet newline issue
-- add flags for cli
-- replace auth system
-- move commands to seperate module and prep for collab
