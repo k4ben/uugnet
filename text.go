@@ -15,7 +15,7 @@ func generateBanner() string {
 
 	logo := logoStyle.Render(art.Tux)
 
-	titleWithSubtitle := lipgloss.JoinVertical(lipgloss.Center, titleStyle.Render(art.Title), subtitleStlye.Render("A telnet server for UUGers."))
+	titleWithSubtitle := lipgloss.JoinVertical(lipgloss.Center, titleStyle.Render(art.Title), subtitleStlye.Render("A telnet server for UUGulites."))
 
 	msg := lipgloss.JoinHorizontal(lipgloss.Center, logo, "  ", titleWithSubtitle)
 	return bannerStyle.Render(msg)

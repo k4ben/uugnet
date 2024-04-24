@@ -1,6 +1,6 @@
 # uugnet
 
-A BBS-style telnet server for UUGers.
+A BBS-style telnet server for UUGulite.
 
 <img src="https://i.ibb.co/rd6MFVk/image.jpg" alt="uugnet screenshot" width="400"/>
 
