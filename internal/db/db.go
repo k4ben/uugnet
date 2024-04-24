@@ -9,7 +9,7 @@ import (
 
 var db *sql.DB
 
-const dbPath = "sqlite/uugnet.db"
+const dbPath = "sqlite.db"
 
 type User struct {
 	Username string
