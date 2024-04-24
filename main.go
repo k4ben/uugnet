@@ -44,11 +44,11 @@ func main() {
 	logger.Fatal(err)
 	serveCmd := flag.NewFlagSet("serve", flag.ExitOnError)
 	serveForgot := serveCmd.Bool("f", false, "uugnet serve -f")
+	serveCmd.Parse(os.Args[2:])
+	flag.Parse()
 	if serveForgot != nil && *serveForgot {
 		enableForgotPassword = true
 	}
-	serveCmd.Parse(os.Args[2:])
-	flag.Parse()
 	args := flag.Args()
 	handleArgs(args)
 	port := ":23"
@@ -115,8 +115,16 @@ func handleConnection(conn net.Conn) {
 		fmt.Fprintln(conn, "Incorrect username or password")
 		if enableForgotPassword {
 			fmt.Fprintf(conn, "\nForgot password? [Y/n]: ")
-			reader.ReadString('\n')
-			fmt.Fprintf(conn, "Your password is '%s'\n\n", userRow.Password)
+			forgot, err := reader.ReadString('\n')
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			forgot = strings.TrimSpace(forgot)
+			forgot = strings.ToLower(forgot)
+			if forgot == "y" || forgot == "" {
+				fmt.Fprintf(conn, "Your password is '%s'\n\n", userRow.Password)
+			}
 		}
 		return
 	}
