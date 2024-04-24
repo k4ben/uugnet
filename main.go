@@ -11,7 +11,6 @@ import (
 	"uugnet/internal/db"
 	"uugnet/internal/logger"
 	"uugnet/internal/user"
-	"uugnet/internal/wall"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -86,12 +85,6 @@ func generatePrompt(name string) string {
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
-
-	go func() {
-		for true {
-			fmt.Println(<-wall.WallChannel)
-		}
-	}()
 
 	reader := bufio.NewReader(conn)
 

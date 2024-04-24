@@ -2,7 +2,7 @@
 
 A BBS-style telnet server for UUGulite.
 
-<img src="https://i.ibb.co/rd6MFVk/image.jpg" alt="uugnet screenshot" width="400"/>
+<img src="https://i.ibb.co/JrH362j/Screenshot-2024-04-24-at-7-56-06-PM.png" alt="uugnet screenshot" width="400"/>
 
 ### Telnet Commands
 
