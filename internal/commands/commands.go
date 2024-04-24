@@ -17,7 +17,7 @@ type Command struct {
 var Commands = []Command{}
 
 func InitCommands() {
-	Commands = []Command{HelpCommand, ExitCommand}
+	Commands = []Command{HelpCommand, ExitCommand, ChatCommand}
 }
 
 func HandleCommands(user db.UserDbRow, args []string, conn net.Conn, reader bufio.Reader) {

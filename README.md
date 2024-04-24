@@ -6,10 +6,11 @@ A BBS-style telnet server for UUGulite.
 
 ### Telnet Commands
 
-| Command          | Description                    |
-| ---------------- | ------------------------------ |
-| `help [command]` | Lists commands and their usage |
-| `exit`           | Disconnect from uugnet         |
+| Command                          | Description                    |
+| -------------------------------- | ------------------------------ |
+| `help [command]`                 | Lists commands and their usage |
+| `chat <read \| write <message>>` | A not-so-good chat client.     |
+| `exit`                           | Disconnect from uugnet         |
 
 If you would like to add a command, read [Telnet Commands](https://github.com/k4ben/uugnet/tree/master/internal/commands#telnet-commands) for more info.
 
@@ -27,3 +28,4 @@ go build
 | `uugnet serve`              | Run the uugnet server |
 | `uugnet userlist`           | List users            |
 | `uugnet useradd <username>` | Add user              |
+| `uugnet userdel <username>` | Delete user           |

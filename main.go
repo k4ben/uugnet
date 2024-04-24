@@ -11,6 +11,7 @@ import (
 	"uugnet/internal/db"
 	"uugnet/internal/logger"
 	"uugnet/internal/user"
+	"uugnet/internal/wall"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -22,6 +23,7 @@ func handleArgs(args []string) {
 		fmt.Println("serve\t\t\tRun the uugnet server")
 		fmt.Println("userlist\t\tList users")
 		fmt.Println("useradd <username>\tAdd user")
+		fmt.Println("userdel <username>\tDelete user")
 		fmt.Println()
 		os.Exit(0)
 	}
@@ -29,7 +31,9 @@ func handleArgs(args []string) {
 	case "userlist":
 		user.CLI.UserList()
 	case "useradd":
-		user.CLI.AddUser(args)
+		user.CLI.UserAdd(args)
+	case "userdel":
+		user.CLI.UserDel(args)
 	case "serve":
 		return
 	}
@@ -44,7 +48,9 @@ func main() {
 	logger.Fatal(err)
 	serveCmd := flag.NewFlagSet("serve", flag.ExitOnError)
 	serveForgot := serveCmd.Bool("f", false, "uugnet serve -f")
-	serveCmd.Parse(os.Args[2:])
+	if len(os.Args) > 2 {
+		serveCmd.Parse(os.Args[2:])
+	}
 	flag.Parse()
 	if serveForgot != nil && *serveForgot {
 		enableForgotPassword = true
@@ -81,6 +87,12 @@ func generatePrompt(name string) string {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
+	go func() {
+		for true {
+			fmt.Println(<-wall.WallChannel)
+		}
+	}()
+
 	reader := bufio.NewReader(conn)
 
 	fmt.Fprintf(conn, "\nuugnet login: ")
@@ -90,7 +102,7 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
-	// This is a stupid thing that telnet on macOS sends when you don't specify a port, so i'm manually removing it for the time being
+	// TODO: Turns out this is different sometimes we need to figure out why telnet sends weird stuff sometimes or find a better way to handle user input
 	prefix := []byte{255, 251, 37, 255, 253, 3, 255, 251, 24, 255, 251, 31, 255, 251, 32, 255, 251, 33, 255, 251, 34, 255, 251, 39, 255, 253, 5}
 
 	username = strings.TrimSpace(username)

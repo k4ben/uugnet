@@ -49,6 +49,14 @@ func AddUser(u *User) error {
 	return err
 }
 
+func DelUser(username string) error {
+	_, err := db.ExecContext(
+		context.Background(),
+		`DELETE FROM User WHERE username=?;`, username,
+	)
+	return err
+}
+
 func GetUser(username string) (UserDbRow, error) {
 	var user UserDbRow
 

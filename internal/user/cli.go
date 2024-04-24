@@ -31,7 +31,7 @@ func (commandNamespace) UserList() {
 	fmt.Print("\n\n")
 }
 
-func (commandNamespace) AddUser(args []string) {
+func (commandNamespace) UserAdd(args []string) {
 	if len(args) < 2 {
 		fmt.Println("Usage: uugnet useradd <username>")
 	} else {
@@ -69,6 +69,29 @@ func (commandNamespace) AddUser(args []string) {
 			} else {
 				fmt.Printf("Added user '%s'", username)
 			}
+		}
+	}
+	fmt.Println()
+}
+
+func (commandNamespace) UserDel(args []string) {
+	if len(args) < 2 {
+		fmt.Println("Usage: uugnet userdel <username>")
+	} else {
+		username := strings.TrimSpace(args[1])
+		validUsername, err := regexp.Match(UsernameRegex, []byte(username))
+		if err != nil {
+			panic(err)
+		} else if !validUsername {
+			fmt.Println("Error: Invalid username")
+			os.Exit(0)
+		}
+
+		err = db.DelUser(username)
+		if err != nil {
+			fmt.Println("Error: Couldn't delete user")
+		} else {
+			fmt.Printf("Deleted user '%s'", username)
 		}
 	}
 	fmt.Println()
