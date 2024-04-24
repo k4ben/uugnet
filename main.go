@@ -15,11 +15,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var users = map[string]string{
-	"u":   "p",
-	"ben": "password",
-}
-
 func handleArgs(args []string) {
 	if len(args) == 0 {
 		fmt.Println("Usage: uugnet <command>")
