@@ -36,10 +36,18 @@ func handleArgs(args []string) {
 	os.Exit(0)
 }
 
+var enableForgotPassword = false
+
 func main() {
 	err := db.InitDatabase()
 	commands.InitCommands()
 	logger.Fatal(err)
+	serveCmd := flag.NewFlagSet("serve", flag.ExitOnError)
+	serveForgot := serveCmd.Bool("f", false, "uugnet serve -f")
+	if serveForgot != nil && *serveForgot {
+		enableForgotPassword = true
+	}
+	serveCmd.Parse(os.Args[2:])
 	flag.Parse()
 	args := flag.Args()
 	handleArgs(args)
@@ -105,11 +113,14 @@ func handleConnection(conn net.Conn) {
 		return
 	} else if userRow.Password != password {
 		fmt.Fprintln(conn, "Incorrect username or password")
-		fmt.Fprintf(conn, "\nForgot password? [Y/n]: ")
-		reader.ReadString('\n')
-		fmt.Fprintf(conn, "Your password is '%s'\n\n", userRow.Password)
+		if enableForgotPassword {
+			fmt.Fprintf(conn, "\nForgot password? [Y/n]: ")
+			reader.ReadString('\n')
+			fmt.Fprintf(conn, "Your password is '%s'\n\n", userRow.Password)
+		}
 		return
 	}
+
 	fmt.Fprintf(conn, "%s\n\n", generateBanner())
 	fmt.Fprintf(conn, "Welcome to uugnet, %s! Type 'help' for commands.\n", username)
 

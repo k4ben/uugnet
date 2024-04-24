@@ -23,9 +23,9 @@ var HelpCommand = Command{
 			table := helpTable(Commands)
 			result += table.Render()
 		} else {
-			c, err := findCommand(args[0])
+			c, err := findCommand(args[1])
 			if err != nil {
-				result += fmt.Sprintf("help: command not found: %s\n", args[0])
+				result += fmt.Sprintf("help: command not found: %s\n", args[1])
 			}
 			result += fmt.Sprintf("%s: %s\t\t%s\n", c.Name, c.Usage, c.Description)
 		}
