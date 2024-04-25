@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"github.com/muesli/termenv"
 	"net"
 	"os"
 	"strings"
@@ -14,6 +15,8 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 )
+
+var localMode = false
 
 func handleArgs(args []string) {
 	if len(args) == 0 {
@@ -33,6 +36,9 @@ func handleArgs(args []string) {
 		user.CLI.UserAdd(args)
 	case "userdel":
 		user.CLI.UserDel(args)
+	case "local":
+		localMode = true
+		return
 	case "serve":
 		return
 	}
@@ -42,6 +48,7 @@ func handleArgs(args []string) {
 var enableForgotPassword = false
 
 func main() {
+	lipgloss.SetColorProfile(termenv.ANSI256)
 	err := db.InitDatabase()
 	commands.InitCommands()
 	logger.Fatal(err)
@@ -56,21 +63,25 @@ func main() {
 	}
 	args := flag.Args()
 	handleArgs(args)
-	port := ":23"
-	listener, err := net.Listen("tcp", port)
-	logger.Fatal(err)
-	defer listener.Close()
+	if localMode {
+		handleConnection(NewStdioConn())
+	} else {
+		port := ":23"
+		listener, err := net.Listen("tcp", port)
+		logger.Fatal(err)
+		defer listener.Close()
 
-	fmt.Printf("uugnet server started on %s\n", port)
+		fmt.Printf("uugnet server started on %s\n", port)
 
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			fmt.Println("Error accepting connection:", err)
-			continue
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				fmt.Println("Error accepting connection:", err)
+				continue
+			}
+
+			go handleConnection(conn)
 		}
-
-		go handleConnection(conn)
 	}
 }
 

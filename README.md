@@ -23,9 +23,10 @@ go build
 
 ### CLI Commands
 
-| Command                     | Description           |
-| --------------------------- | --------------------- |
-| `uugnet serve`              | Run the uugnet server |
-| `uugnet userlist`           | List users            |
-| `uugnet useradd <username>` | Add user              |
-| `uugnet userdel <username>` | Delete user           |
+| Command                     | Description               |
+|-----------------------------|---------------------------|
+| `uugnet serve`              | Run the uugnet server     |
+| `uugnet local`              | Run uugnet as a local CLI |
+| `uugnet userlist`           | List users                |
+| `uugnet useradd <username>` | Add user                  |
+| `uugnet userdel <username>` | Delete user               |
